@@ -1,43 +1,426 @@
-/* 新增样式：按钮组和次要按钮 */
+/* RuanTools - 极简风格优化 */
+/* 设计理念：干净、现代、专注内容 */
+
+:root {
+    /* 配色方案 - 柔和现代 */
+    --primary-color: #2563eb;      /* 主蓝色 */
+    --secondary-color: #64748b;    /* 中灰色 */
+    --success-color: #10b981;      /* 绿色 */
+    --background-color: #f8fafc;   /* 背景色 */
+    --surface-color: #ffffff;      /* 表面色 */
+    --text-primary: #1e293b;       /* 主文本 */
+    --text-secondary: #64748b;     /* 次要文本 */
+    --text-muted: #94a3b8;         /* 弱化文本 */
+    --border-color: #e2e8f0;       /* 边框色 */
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+    --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
+    --border-radius: 12px;
+    --transition: all 0.2s ease;
+}
+
+/* 基础重置 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    line-height: 1.6;
+    color: var(--text-primary);
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+    min-height: 100vh;
+    padding: 0;
+    margin: 0;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+}
+
+/* 顶部区域 */
+.site-header {
+    text-align: center;
+    margin-bottom: 3.5rem;
+    padding-bottom: 2rem;
+    position: relative;
+}
+
+.site-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary-color), var(--success-color));
+    border-radius: 3px;
+}
+
+.site-title {
+    font-size: 3.2rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+    background: linear-gradient(90deg, var(--primary-color), #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.site-description {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.5;
+}
+
+.site-contact {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+}
+
+.site-contact a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+    border-bottom: 1px dashed rgba(37, 99, 235, 0.3);
+    transition: var(--transition);
+}
+
+.site-contact a:hover {
+    color: #1d4ed8;
+    border-bottom-color: var(--primary-color);
+}
+
+.site-notice {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    color: #92400e;
+    padding: 1rem 1.25rem;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    max-width: 700px;
+    margin: 1.5rem auto 0;
+    border-left: 4px solid #f59e0b;
+    box-shadow: var(--shadow-sm);
+}
+
+/* 应用列表 */
+.app-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+@media (max-width: 768px) {
+    .app-list {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* 应用卡片 */
+.app-card {
+    background: var(--surface-color);
+    border-radius: var(--border-radius);
+    padding: 2.25rem;
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.app-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+    border-color: rgba(37, 99, 235, 0.2);
+}
+
+.app-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 5px;
+    height: 100%;
+    background: linear-gradient(to bottom, var(--primary-color), var(--success-color));
+}
+
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.app-name {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.app-version {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: white;
+    background: linear-gradient(135deg, var(--primary-color), #4f46e5);
+    padding: 0.35rem 1rem;
+    border-radius: 20px;
+    box-shadow: 0 2px 5px rgba(37, 99, 235, 0.2);
+}
+
+.app-author {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.app-author::before {
+    content: '👤';
+    font-size: 0.9em;
+}
+
+.app-desc {
+    color: var(--text-secondary);
+    margin-bottom: 1.75rem;
+    line-height: 1.7;
+    font-size: 1.05rem;
+}
+
+/* 下载区域 */
+.app-download {
+    border-top: 1px solid var(--border-color);
+    padding-top: 1.75rem;
+}
+
 .btn-group {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 1rem;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.download-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    color: white;
+    text-decoration: none;
+    padding: 0.9rem 1.8rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: var(--transition);
+    flex: 1;
+    min-width: 200px;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    border: none;
+    cursor: pointer;
+}
+
+.download-btn.primary {
+    background: linear-gradient(135deg, var(--success-color), #0da271);
+}
+
+.download-btn.primary:hover {
+    background: linear-gradient(135deg, #0da271, var(--success-color));
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(16, 185, 129, 0.25);
 }
 
 .download-btn.secondary {
-    background-color: #6c757d; /* 灰色，用于区分主按钮 */
+    background: linear-gradient(135deg, #6b7280, #4b5563);
 }
+
 .download-btn.secondary:hover {
-    background-color: #5a6268;
+    background: linear-gradient(135deg, #4b5563, #6b7280);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(107, 114, 128, 0.25);
 }
 
-/* 调整原有按钮样式，使其成为“主要”按钮 */
-.download-btn.primary {
-    background-color: #2ecc71; /* 保持原有的绿色 */
-}
-.download-btn.primary:hover {
-    background-color: #27ae60;
+.download-btn i {
+    font-size: 1.1em;
 }
 
-/* 页眉中的提示信息 */
-.site-notice {
+.file-hash {
     font-size: 0.9rem;
-    color: #e74c3c;
-    background-color: #fdf2f2;
-    padding: 8px 12px;
-    border-radius: 6px;
-    border-left: 4px solid #e74c3c;
-    margin-top: 1rem;
+    color: var(--text-muted);
+    background: var(--background-color);
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    word-break: break-all;
 }
 
-/* 响应式调整：在小屏幕上让按钮垂直堆叠 */
-@media (max-width: 480px) {
+.file-hash strong {
+    color: var(--text-secondary);
+    font-weight: 600;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.file-hash code {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+}
+
+/* 页脚 */
+.site-footer {
+    text-align: center;
+    margin-top: 4rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-color);
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    position: relative;
+}
+
+.site-footer::before {
+    content: '✦';
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--background-color);
+    padding: 0 1rem;
+    color: var(--primary-color);
+    font-size: 1.2rem;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .container {
+        padding: 1.5rem 1rem;
+    }
+    
+    .site-title {
+        font-size: 2.5rem;
+    }
+    
+    .app-list {
+        gap: 1.5rem;
+    }
+    
+    .app-card {
+        padding: 1.75rem;
+    }
+    
+    .app-name {
+        font-size: 1.6rem;
+    }
+    
     .btn-group {
         flex-direction: column;
     }
+    
     .download-btn {
-        text-align: center;
+        min-width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .site-title {
+        font-size: 2rem;
+    }
+    
+    .app-card {
+        padding: 1.5rem;
+    }
+    
+    .app-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.app-card {
+    animation: fadeIn 0.5s ease forwards;
+}
+
+.app-card:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.app-card:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+/* 滚动条美化 */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* 字体优化 */
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+/* 焦点状态 */
+a:focus, button:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* 打印样式 */
+@media print {
+    .app-card {
+        box-shadow: none;
+        border: 1px solid #ccc;
+        break-inside: avoid;
+    }
+    
+    .download-btn {
+        display: none;
     }
 }
