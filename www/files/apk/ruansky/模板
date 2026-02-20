@@ -10,10 +10,6 @@
         <div class="btn-group">
             <a class="download-btn primary" href="https://ruantools.pages.dev/files/apk/ruansky/作者文件夹/应用文件名.apk" title="下载 应用名称 v版本号">
                 <i class="fas fa-download"></i> 下载 APK (主站)  <!-- 修改href和title -->
-            </a>
-            <a class="download-btn secondary" href="https://ruantools.zh-cn.edgeone.cool/files/apk/ruansky/作者文件夹/应用文件名.apk" title="下载 应用名称 v版本号 (EdgeOne CDN加速)">
-                <i class="fas fa-bolt"></i> 下载 APK (CDN加速)  <!-- 修改href和title -->
-            </a>
         </div>
         <p class="file-hash">
             <strong>SHA256:</strong>
