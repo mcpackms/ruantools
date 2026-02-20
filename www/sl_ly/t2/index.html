@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GET请求测试 - Ruantools</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            flex: 1;
+        }
+        
+        .btn-start {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-stop {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-clear {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .stat-item {
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        
+        .stat-number {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .progress {
+            width: 100%;
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: #007bff;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .result-item {
+            padding: 8px 12px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: monospace;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 3px solid #28a745;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 3px solid #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>GET请求测试工具</h2>
+        
+        <div class="input-group">
+            <label>URL:</label>
+            <input type="url" id="url" value="https://httpbin.org/get" placeholder="输入目标URL">
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div class="input-group">
+                <label>请求次数:</label>
+                <input type="number" id="requests" value="10" min="1" max="1000">
+            </div>
+            
+            <div class="input-group">
+                <label>并发量:</label>
+                <input type="number" id="concurrency" value="3" min="1" max="50">
+            </div>
+        </div>
+        
+        <div class="progress">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        
+        <div class="btn-group">
+            <button class="btn-start" onclick="startRequests()">开始</button>
+            <button class="btn-stop" onclick="stopRequests()" disabled id="stopBtn">停止</button>
+            <button class="btn-clear" onclick="clearResults()">清空</button>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-number" id="total">0</div>
+                <div>总数</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="success">0</div>
+                <div>成功</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="error">0</div>
+                <div>失败</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="avgTime">0ms</div>
+                <div>平均耗时</div>
+            </div>
+        </div>
+        
+        <div id="results" style="max-height: 400px; overflow-y: auto;"></div>
+    </div>
+
+    <script>
+        let requestQueue = [];
+        let activeRequests = 0;
+        let completedRequests = 0;
+        let totalRequests = 0;
+        let successCount = 0;
+        let errorCount = 0;
+        let totalTime = 0;
+        let isRunning = false;
+        let controller = null;
+
+        function updateStats() {
+            document.getElementById('total').textContent = totalRequests;
+            document.getElementById('success').textContent = successCount;
+            document.getElementById('error').textContent = errorCount;
+            
+            // 修复平均耗时计算：只基于成功请求计算
+            const avgTime = successCount > 0 ? Math.round(totalTime / successCount) : 0;
+            document.getElementById('avgTime').textContent = avgTime + 'ms';
+            
+            const progress = (completedRequests / totalRequests) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+
+        function addResult(status, code, url, time) {
+            const results = document.getElementById('results');
+            const item = document.createElement('div');
+            item.className = `result-item ${status}`;
+            item.textContent = `${code} | ${time}ms | ${url}`;
+            results.appendChild(item);
+            results.scrollTop = results.scrollHeight;
+        }
+
+        async function sendRequest(url) {
+            const start = Date.now();
+            try {
+                if (controller) {
+                    const response = await fetch(url, { signal: controller.signal });
+                    const time = Date.now() - start;
+                    
+                    if (response.ok) {
+                        successCount++;
+                        totalTime += time;  // 只累加成功请求的时间
+                        addResult('success', response.status, url, time);
+                    } else {
+                        errorCount++;
+                        addResult('error', response.status, url, time);
+                    }
+                }
+            } catch (err) {
+                const time = Date.now() - start;
+                if (err.name !== 'AbortError') {
+                    errorCount++;
+                    addResult('error', 'ERROR', url, time);
+                }
+            }
+            
+            completedRequests++;
+            activeRequests--;
+            updateStats();
+            processQueue();
+        }
+
+        function processQueue() {
+            if (requestQueue.length === 0 && activeRequests === 0) {
+                stopRequests();
+                return;
+            }
+            
+            const concurrency = parseInt(document.getElementById('concurrency').value);
+            while (activeRequests < concurrency && requestQueue.length > 0) {
+                activeRequests++;
+                const url = requestQueue.shift();
+                sendRequest(url);
+            }
+        }
+
+        function startRequests() {
+            if (isRunning) return;
+            
+            const url = document.getElementById('url').value;
+            const requests = parseInt(document.getElementById('requests').value);
+            if (!url) {
+                alert('请输入URL');
+                return;
+            }
+            
+            // 重置
+            requestQueue = [];
+            activeRequests = 0;
+            completedRequests = 0;
+            totalRequests = requests;
+            successCount = 0;
+            errorCount = 0;
+            totalTime = 0;
+            isRunning = true;
+            controller = new AbortController();
+            
+            document.getElementById('results').innerHTML = '';
+            updateStats();
+            document.getElementById('stopBtn').disabled = false;
+            
+            // 创建队列
+            for (let i = 0; i < requests; i++) {
+                const fullUrl = url + (url.includes('?') ? '&' : '?') + 'req=' + (i + 1);
+                requestQueue.push(fullUrl);
+            }
+            
+            processQueue();
+        }
+
+        function stopRequests() {
+            if (controller) {
+                controller.abort();
+                controller = null;
+            }
+            isRunning = false;
+            document.getElementById('stopBtn').disabled = true;
+        }
+
+        function clearResults() {
+            if (isRunning) {
+                alert('请先停止测试');
+                return;
+            }
+            document.getElementById('results').innerHTML = '';
+            successCount = 0;
+            errorCount = 0;
+            totalTime = 0;
+            updateStats();
+            document.getElementById('progressBar').style.width = '0%';
+        }
+    </script>
+</body>
+</html>
