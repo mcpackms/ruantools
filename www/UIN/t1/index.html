@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>软天空转换工具 - UIN制作</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header .subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .function-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .function-btn {
+            padding: 12px;
+            border: 2px solid #3498db;
+            background: white;
+            color: #3498db;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .function-btn:hover {
+            background: #3498db;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .function-btn.active {
+            background: #3498db;
+            color: white;
+        }
+        
+        .input-group {
+            margin: 20px 0;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .input-group textarea {
+            width: 100%;
+            height: 100px;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            resize: vertical;
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+        }
+        
+        .input-group textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+        
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #219a52;
+        }
+        
+        .result-section {
+            margin-top: 30px;
+        }
+        
+        .result-box {
+            background: #e8f4fc;
+            border: 2px dashed #3498db;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 10px;
+            min-height: 80px;
+            word-break: break-all;
+            font-family: monospace;
+            white-space: pre-wrap;
+            position: relative;
+        }
+        
+        .result-box.success {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+        
+        .result-box.error {
+            background: #f8d7da;
+            border-color: #dc3545;
+        }
+        
+        .copy-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            font-size: 14px;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+            z-index: 9999;
+        }
+        
+        .copy-toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .notice {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        
+        .notice h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+        
+        .notice ul {
+            padding-left: 20px;
+        }
+        
+        .notice li {
+            margin-bottom: 5px;
+            color: #856404;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 768px) {
+            .function-buttons {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>软天空转换工具</h1>
+            <div class="subtitle">链接 · 口令 · 代码 互转工具 | UIN制作</div>
+        </div>
+        
+        <div class="content">
+            <div class="notice">
+                <h4>⚠️ 使用注意事项</h4>
+                <ul>
+                    <li>支持用户(user)、帖子(post)、文件(up)三种类型互转</li>
+                    <li>链接格式：http://a.ruansky.com/类型/ID/</li>
+                    <li>代码格式：[类型=ID][/类型] (文件类型使用upfile)</li>
+                    <li>口令格式：@#&Base64编码$#@</li>
+                </ul>
+            </div>
+            
+            <div class="section">
+                <h3>第一步：选择转换类型</h3>
+                <div class="function-buttons">
+                    <button class="function-btn" onclick="selectFunction(1, event)">链接 → 口令/代码</button>
+                    <button class="function-btn" onclick="selectFunction(2, event)">口令 → 链接/代码</button>
+                    <button class="function-btn" onclick="selectFunction(3, event)">代码 → 链接/口令</button>
+                </div>
+            </div>
+            
+            <div id="conversionSection" class="section hidden">
+                <h3>第二步：选择目标格式</h3>
+                <div id="targetButtons" class="function-buttons">
+                    <!-- 动态生成目标格式按钮 -->
+                </div>
+            </div>
+            
+            <div id="inputSection" class="section hidden">
+                <h3>第三步：输入内容</h3>
+                <div class="input-group">
+                    <label id="inputLabel">请输入内容：</label>
+                    <textarea id="inputText" placeholder="请在此处粘贴您的链接、口令或代码..."></textarea>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="convert()">开始转换</button>
+                    <button class="btn btn-secondary" onclick="clearInput()">清空输入</button>
+                </div>
+            </div>
+            
+            <div id="resultSection" class="section result-section hidden">
+                <h3>转换结果</h3>
+                <div id="resultBox" class="result-box">
+                    转换结果将显示在这里...
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-success" onclick="copyResult()">手动复制结果</button>
+                    <button class="btn btn-secondary" onclick="resetTool()">重新开始</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>© 2024 软天空转换工具 | 如有bug请在软天空反馈</p>
+        </div>
+    </div>
+
+    <div id="copyToast" class="copy-toast">转换结果已自动复制到剪贴板！</div>
+
+    <script>
+        // ==================== 数据定义 ====================
+        const Functions = {
+            1: '链接',
+            2: '口令', 
+            3: '代码'
+        };
+
+        // 口令前缀 → 链接类型映射
+        const Password_URL_UIN = {
+            '1-': 'game',     // 游戏
+            '2-': 'up',       // 文件
+            '3-': 'post',     // 帖子
+            '4-': 'user',     // 用户
+            '5-': 'family'    // 家族
+        };
+
+        // 链接类型 → 口令前缀映射
+        const URL_Password_UIN = {
+            'game': '1-',
+            'up': '2-',
+            'post': '3-',
+            'user': '4-',
+            'family': '5-'
+        };
+
+        // 链接类型列表
+        const URL_types_UIN = ['up', 'post', 'user', 'game', 'family'];
+        const URL_UIN = 'a.ruansky.com/';
+
+        // 链接类型 → 代码类型映射
+        const URL_Code_UIN = {
+            'up': 'upfile',
+            'post': 'post', 
+            'user': 'user',
+            'game': 'game',
+            'family': 'family'
+        };
+
+        // 代码类型 → 链接类型映射
+        const Code_URL_UIN = {
+            'upfile': 'up',
+            'post': 'post',
+            'user': 'user',
+            'game': 'game',
+            'family': 'family'
+        };
+
+        // 代码类型列表
+        const Code_types_UIN = ['upfile', 'post', 'user', 'game', 'family'];
+
+        // 口令前缀 → 代码类型映射
+        const Password_Code_UIN = {
+            '1-': 'game',
+            '2-': 'upfile',
+            '3-': 'post',
+            '4-': 'user',
+            '5-': 'family'
+        };
+
+        // 代码类型 → 口令前缀映射
+        const Code_Password_UIN = {
+            'game': '1-',
+            'upfile': '2-',
+            'post': '3-',
+            'user': '4-',
+            'family': '5-'
+        };
+
+        const Password_A = '@#&';
+        const Password_B = '$#@';
+
+        // ==================== 状态变量 ====================
+        let currentFunction = null;
+        let currentConversion = null;
+
+        // DOM 元素
+        const conversionSection = document.getElementById('conversionSection');
+        const targetButtons = document.getElementById('targetButtons');
+        const inputSection = document.getElementById('inputSection');
+        const inputLabel = document.getElementById('inputLabel');
+        const inputText = document.getElementById('inputText');
+        const resultSection = document.getElementById('resultSection');
+        const resultBox = document.getElementById('resultBox');
+        const copyToast = document.getElementById('copyToast');
+
+        // ==================== Base64工具函数（修复版） ====================
+        function base64Encode(str) {
+            try {
+                // 先UTF-8编码再Base64
+                const utf8Bytes = unescape(encodeURIComponent(str));
+                return btoa(utf8Bytes);
+            } catch (e) {
+                throw new Error('Base64编码失败：' + e.message);
+            }
+        }
+
+        function base64Decode(str) {
+            try {
+                // 先Base64解码再UTF-8解码
+                const base64Decoded = atob(str);
+                return decodeURIComponent(escape(base64Decoded));
+            } catch (e) {
+                throw new Error('Base64解码失败：' + e.message);
+            }
+        }
+
+        // ==================== 类型判断函数 ====================
+        function Judge_URL_Type(str) {
+            for (const type of URL_types_UIN) {
+                if (str.includes('/' + type + '/')) {
+                    return type;
+                }
+            }
+            return null;
+        }
+
+        function Judge_Code_Type(str) {
+            for (const type of Code_types_UIN) {
+                if (str.includes('[' + type + '=')) {
+                    return type;
+                }
+            }
+            return null;
+        }
+
+        function Judge_Password_Type(str) {
+            if (!str.includes(Password_A) || !str.includes(Password_B)) {
+                return null;
+            }
+            try {
+                const startIndex = str.indexOf(Password_A) + Password_A.length;
+                const endIndex = str.indexOf(Password_B);
+                const content = str.substring(startIndex, endIndex);
+                const decoded = base64Decode(content);
+                const prefix = decoded.substring(0, 2);
+                return Password_URL_UIN[prefix] ? prefix : null;
+            } catch {
+                return null;
+            }
+        }
+
+        // ==================== ID提取函数 ====================
+        function extractIdFromURL(str) {
+            const matches = str.match(/\/(\d+)\/?$/);
+            return matches ? matches[1] : null;
+        }
+
+        function extractIdFromCode(str) {
+            const matches = str.match(/=(\d+)\]/);
+            return matches ? matches[1] : null;
+        }
+
+        function extractIdFromPassword(str) {
+            try {
+                const startIndex = str.indexOf(Password_A) + Password_A.length;
+                const endIndex = str.indexOf(Password_B);
+                const content = str.substring(startIndex, endIndex);
+                const decoded = base64Decode(content);
+                return decoded.substring(2); // 去掉前缀（如"2-"）
+            } catch {
+                return null;
+            }
+        }
+
+        // ==================== 转换函数 ====================
+        function URL_Password(str) {
+            const type = Judge_URL_Type(str);
+            if (!type) {
+                throw new Error('无法识别链接类型');
+            }
+            
+            const id = extractIdFromURL(str);
+            if (!id) {
+                throw new Error('无法从链接中提取ID');
+            }
+            
+            const prefix = URL_Password_UIN[type];
+            if (!prefix) {
+                throw new Error('不支持的链接类型：' + type);
+            }
+            
+            const text = prefix + id;
+            const encoded = base64Encode(text);
+            return Password_A + encoded + Password_B;
+        }
+
+        function URL_Code(str) {
+            const type = Judge_URL_Type(str);
+            if (!type) {
+                throw new Error('无法识别链接类型');
+            }
+            
+            const id = extractIdFromURL(str);
+            if (!id) {
+                throw new Error('无法从链接中提取ID');
+            }
+            
+            const code = URL_Code_UIN[type];
+            if (!code) {
+                throw new Error('不支持的链接类型：' + type);
+            }
+            
+            // 文件类型(up)不需要加减，直接使用原ID
+            if (type === 'up') {
+                return `[${code}=${id}][/${code}]`;
+            }
+            
+            // 其他类型需要加减1111110
+            const num = parseInt(id) - 1111110;
+            return `[${code}=${num}][/${code}]`;
+        }
+
+        function Password_URL(str) {
+            const type = Judge_Password_Type(str);
+            if (!type) {
+                throw new Error('无法识别口令类型');
+            }
+            
+            const id = extractIdFromPassword(str);
+            if (!id) {
+                throw new Error('无法从口令中提取ID');
+            }
+            
+            const urlType = Password_URL_UIN[type];
+            if (!urlType) {
+                throw new Error('不支持的口令类型：' + type);
+            }
+            
+            return 'http://' + URL_UIN + urlType + '/' + id + '/';
+        }
+
+        function Password_Code(str) {
+            const type = Judge_Password_Type(str);
+            if (!type) {
+                throw new Error('无法识别口令类型');
+            }
+            
+            const id = extractIdFromPassword(str);
+            if (!id) {
+                throw new Error('无法从口令中提取ID');
+            }
+            
+            const code = Password_Code_UIN[type];
+            if (!code) {
+                throw new Error('不支持的口令类型：' + type);
+            }
+            
+            // 文件类型(upfile)不需要加减，直接使用原ID
+            if (code === 'upfile') {
+                return `[${code}=${id}][/${code}]`;
+            }
+            
+            // 其他类型需要加减1111110
+            const num = parseInt(id) - 1111110;
+            return `[${code}=${num}][/${code}]`;
+        }
+
+        function Code_URL(str) {
+            const type = Judge_Code_Type(str);
+            if (!type) {
+                throw new Error('无法识别代码类型');
+            }
+            
+            const id = extractIdFromCode(str);
+            if (!id) {
+                throw new Error('无法从代码中提取ID');
+            }
+            
+            const urlType = Code_URL_UIN[type];
+            if (!urlType) {
+                throw new Error('不支持的代码类型：' + type);
+            }
+            
+            // 文件类型(upfile)不需要加减，直接使用原ID
+            if (type === 'upfile') {
+                return 'http://' + URL_UIN + urlType + '/' + id + '/';
+            }
+            
+            // 其他类型需要加减1111110
+            const num = parseInt(id) + 1111110;
+            return 'http://' + URL_UIN + urlType + '/' + num + '/';
+        }
+
+        function Code_Password(str) {
+            const type = Judge_Code_Type(str);
+            if (!type) {
+                throw new Error('无法识别代码类型');
+            }
+            
+            const id = extractIdFromCode(str);
+            if (!id) {
+                throw new Error('无法从代码中提取ID');
+            }
+            
+            const prefix = Code_Password_UIN[type];
+            if (!prefix) {
+                throw new Error('不支持的代码类型：' + type);
+            }
+            
+            // 文件类型(upfile)不需要加减，直接使用原ID
+            let text;
+            if (type === 'upfile') {
+                text = prefix + id;
+            } else {
+                const num = parseInt(id) + 1111110;
+                text = prefix + num;
+            }
+            
+            const encoded = base64Encode(text);
+            return Password_A + encoded + Password_B;
+        }
+
+        // ==================== UI函数 ====================
+        function selectFunction(func, event) {
+            currentFunction = func;
+            
+            document.querySelectorAll('.function-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            showTargetFormats(func);
+            conversionSection.classList.remove('hidden');
+            inputSection.classList.add('hidden');
+            resultSection.classList.add('hidden');
+        }
+
+        function showTargetFormats(sourceFunc) {
+            targetButtons.innerHTML = '';
+            
+            for (const [key, value] of Object.entries(Functions)) {
+                const targetFunc = parseInt(key);
+                if (targetFunc !== sourceFunc) {
+                    const button = document.createElement('button');
+                    button.className = 'function-btn';
+                    button.textContent = Functions[sourceFunc] + ' → ' + value;
+                    button.onclick = () => selectConversion(targetFunc);
+                    targetButtons.appendChild(button);
+                }
+            }
+        }
+
+        function selectConversion(conversion) {
+            currentConversion = conversion;
+            inputLabel.textContent = `请输入${Functions[currentFunction]}：`;
+            inputSection.classList.remove('hidden');
+            resultSection.classList.add('hidden');
+            inputSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function showCopyToast() {
+            copyToast.classList.add('show');
+            setTimeout(() => {
+                copyToast.classList.remove('show');
+            }, 2000);
+        }
+
+        async function autoCopyResult(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                showCopyToast();
+            } catch (err) {
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showCopyToast();
+            }
+        }
+
+        function convert() {
+            const input = inputText.value.trim();
+            if (!input) {
+                alert('请输入要转换的内容！');
+                return;
+            }
+
+            let result;
+            try {
+                if (currentFunction === 1 && currentConversion === 2) {
+                    result = URL_Password(input);
+                } else if (currentFunction === 1 && currentConversion === 3) {
+                    result = URL_Code(input);
+                } else if (currentFunction === 2 && currentConversion === 1) {
+                    result = Password_URL(input);
+                } else if (currentFunction === 2 && currentConversion === 3) {
+                    result = Password_Code(input);
+                } else if (currentFunction === 3 && currentConversion === 1) {
+                    result = Code_URL(input);
+                } else if (currentFunction === 3 && currentConversion === 2) {
+                    result = Code_Password(input);
+                } else {
+                    throw new Error('不支持的转换类型');
+                }
+
+                resultBox.textContent = result;
+                resultBox.className = 'result-box success';
+                resultSection.classList.remove('hidden');
+                autoCopyResult(result);
+                resultSection.scrollIntoView({ behavior: 'smooth' });
+                
+            } catch (error) {
+                resultBox.textContent = '转换失败：' + error.message + '\n\n请检查输入格式是否正确。';
+                resultBox.className = 'result-box error';
+                resultSection.classList.remove('hidden');
+            }
+        }
+
+        function copyResult() {
+            const resultText = resultBox.textContent;
+            if (resultText.includes('转换失败') || resultText === '转换结果将显示在这里...') {
+                alert('无有效结果可复制！');
+                return;
+            }
+            autoCopyResult(resultText);
+        }
+
+        function clearInput() {
+            inputText.value = '';
+            inputText.focus();
+        }
+
+        function resetTool() {
+            currentFunction = null;
+            currentConversion = null;
+            
+            document.querySelectorAll('.function-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            conversionSection.classList.add('hidden');
+            inputSection.classList.add('hidden');
+            resultSection.classList.add('hidden');
+            inputText.value = '';
+            resultBox.textContent = '转换结果将显示在这里...';
+            resultBox.className = 'result-box';
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('软天空转换工具已加载完成');
+        });
+    </script>
+</body>
+</html>
