@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-        <!-- SPDX-FileCopyrightText: 2026 联电远连 <work_rrvv@hotmi@hotmail.com> -->
-    <!-- SPDX-License-Identifier: Apache-2.0 -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>批量请求测试</title>
@@ -44,6 +42,47 @@
             border-color: #4CAF50;
             box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
         }
+        .controls-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .control-item {
+            flex: 1;
+            min-width: 200px;
+        }
+        .control-item label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .control-item input[type="range"] {
+            width: 100%;
+        }
+        .control-value {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+        }
+        .control-value span {
+            font-weight: bold;
+            color: #2196F3;
+            font-size: 18px;
+        }
+        .request-count-control input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            margin-top: 5px;
+        }
+        .request-count-control input[type="number"]:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+        }
         .status {
             background-color: #fff;
             border: 1px solid #ddd;
@@ -55,7 +94,7 @@
             font-family: monospace;
             font-size: 12px;
         }
-        .controls {
+        .button-controls {
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
@@ -101,35 +140,37 @@
         #failCount {
             color: #f44336;
         }
-        .concurrent-control {
-            margin: 15px 0;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        input[type="range"] {
-            width: 100%;
-        }
-        .concurrent-value {
-            text-align: center;
-            font-weight: bold;
-            font-size: 18px;
-            color: #2196F3;
-        }
         .reset-btn {
             background-color: #ff9800;
         }
         .reset-btn:hover {
             background-color: #e68a00;
         }
+        .info-text {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .progress-bar {
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        .progress {
+            height: 100%;
+            background-color: #4CAF50;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>批量请求测试工具</h1>
-        <p>向指定URL发送GET请求，使用okhttp/3.6 User-Agent</p>
+        <p class="info-text">向指定URL发送GET请求，使用okhttp/3.6 User-Agent</p>
         
         <div class="url-input">
             <label for="targetUrl">目标URL:</label>
@@ -137,12 +178,35 @@
                    value="https://httpbin.org/get">
         </div>
         
-        <div class="concurrent-control">
-            <label for="concurrent">并发数: <span id="concurrentValue">5</span></label>
-            <input type="range" id="concurrent" min="1" max="20" value="5">
+        <div class="controls-group">
+            <div class="control-item">
+                <label for="requestCount">请求数量:</label>
+                <div class="request-count-control">
+                    <input type="number" id="requestCount" min="500" max="2000" value="500">
+                </div>
+                <div class="control-value">
+                    <span>最小值: 500</span>
+                    <span id="requestCountValue">500</span>
+                    <span>最大值: 2000</span>
+                </div>
+            </div>
+            
+            <div class="control-item">
+                <label for="concurrent">并发数:</label>
+                <input type="range" id="concurrent" min="1" max="20" value="5">
+                <div class="control-value">
+                    <span>最小值: 1</span>
+                    <span id="concurrentValue">5</span>
+                    <span>最大值: 20</span>
+                </div>
+            </div>
         </div>
         
-        <div class="controls">
+        <div class="progress-bar">
+            <div class="progress" id="progressBar"></div>
+        </div>
+        
+        <div class="button-controls">
             <button id="startBtn">开始发送请求</button>
             <button id="stopBtn" class="stop" disabled>停止发送</button>
             <button id="clearBtn">清空日志</button>
@@ -156,6 +220,7 @@
             <div>成功: <span id="successCount">0</span></div>
             <div>失败: <span id="failCount">0</span></div>
             <div>进行中: <span id="pendingCount">0</span></div>
+            <div>进度: <span id="progressPercent">0%</span></div>
         </div>
     </div>
 
@@ -180,20 +245,33 @@
         const clearBtn = document.getElementById('clearBtn');
         const resetBtn = document.getElementById('resetBtn');
         const targetUrlInput = document.getElementById('targetUrl');
+        const requestCountInput = document.getElementById('requestCount');
+        const requestCountValueSpan = document.getElementById('requestCountValue');
         const totalCountSpan = document.getElementById('totalCount');
         const targetCountSpan = document.getElementById('targetCount');
         const successCountSpan = document.getElementById('successCount');
         const failCountSpan = document.getElementById('failCount');
         const pendingCountSpan = document.getElementById('pendingCount');
+        const progressPercentSpan = document.getElementById('progressPercent');
         const concurrentSlider = document.getElementById('concurrent');
         const concurrentValueSpan = document.getElementById('concurrentValue');
+        const progressBar = document.getElementById('progressBar');
+        
+        // 更新进度条
+        function updateProgressBar() {
+            const progress = totalRequests / targetRequestsCount * 100;
+            progressBar.style.width = `${progress}%`;
+            progressPercentSpan.textContent = `${progress.toFixed(1)}%`;
+        }
         
         // 更新计数器显示
         function updateCounters() {
             totalCountSpan.textContent = totalRequests;
+            targetCountSpan.textContent = targetRequestsCount;
             successCountSpan.textContent = successCount;
             failCountSpan.textContent = failCount;
             pendingCountSpan.textContent = pendingCount;
+            updateProgressBar();
         }
         
         // 添加状态日志
@@ -212,6 +290,8 @@
                 logEntry.style.color = '#ff9800';
             } else if (type === 'url') {
                 logEntry.style.color = '#2196F3';
+            } else if (type === 'config') {
+                logEntry.style.color = '#9C27B0';
             }
             
             statusDiv.appendChild(logEntry);
@@ -228,6 +308,21 @@
             }
         }
         
+        // 验证请求数量
+        function validateRequestCount(count) {
+            const num = parseInt(count);
+            if (isNaN(num)) {
+                return { valid: false, message: '请求数量必须是数字' };
+            }
+            if (num < 500) {
+                return { valid: false, message: '请求数量不能少于500' };
+            }
+            if (num > 2000) {
+                return { valid: false, message: '请求数量不能超过2000' };
+            }
+            return { valid: true, value: num };
+        }
+        
         // 发送单个请求
         function sendRequest(requestId, url) {
             if (stopRequested) return Promise.resolve();
@@ -241,7 +336,10 @@
                     'User-Agent': 'okhttp/3.6'
                 },
                 // 添加no-cache避免缓存
-                cache: 'no-cache'
+                cache: 'no-cache',
+                // 添加mode和credentials配置以处理CORS
+                mode: 'cors',
+                credentials: 'omit'
             })
             .then(response => {
                 pendingCount--;
@@ -263,7 +361,13 @@
                 totalRequests++;
                 failCount++;
                 
-                addLog(`请求 #${requestId}: 失败 - ${error.message}`, 'error');
+                // 根据错误类型提供更详细的错误信息
+                let errorMessage = error.message;
+                if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+                    errorMessage = '网络错误: 无法连接到服务器，可能是CORS策略阻止了请求或服务器无响应';
+                }
+                
+                addLog(`请求 #${requestId}: 失败 - ${errorMessage}`, 'error');
                 updateCounters();
             });
         }
@@ -284,16 +388,30 @@
                 return;
             }
             
+            // 验证请求数量
+            const countValidation = validateRequestCount(requestCountInput.value);
+            if (!countValidation.valid) {
+                addLog(`错误：${countValidation.message}`, 'error');
+                return;
+            }
+            
             TARGET_URL = userUrl;
+            targetRequestsCount = countValidation.value;
+            
+            // 重置进度
+            progressBar.style.width = '0%';
+            progressPercentSpan.textContent = '0%';
             
             isRunning = true;
             stopRequested = false;
             startBtn.disabled = true;
             stopBtn.disabled = false;
             targetUrlInput.disabled = true;
+            requestCountInput.disabled = true;
+            concurrentSlider.disabled = true;
             
             addLog(`开始发送请求到: ${TARGET_URL}`, 'url');
-            addLog(`并发数: ${concurrentLimit}, 目标请求数: ${targetRequestsCount}`, 'warning');
+            addLog(`配置: 请求数量=${targetRequestsCount}, 并发数=${concurrentLimit}`, 'config');
             
             let nextRequestId = 1;
             
@@ -331,12 +449,15 @@
             startBtn.disabled = false;
             stopBtn.disabled = true;
             targetUrlInput.disabled = false;
+            requestCountInput.disabled = false;
+            concurrentSlider.disabled = false;
             
             if (stopRequested) {
                 addLog('请求发送已停止', 'warning');
             } else {
                 addLog(`所有${targetRequestsCount}个请求发送完成`, 'warning');
-                addLog(`统计结果: 成功 ${successCount}, 失败 ${failCount}, 成功率 ${((successCount/targetRequestsCount)*100).toFixed(2)}%`, 'warning');
+                const successRate = targetRequestsCount > 0 ? (successCount/targetRequestsCount)*100 : 0;
+                addLog(`统计结果: 成功 ${successCount}, 失败 ${failCount}, 成功率 ${successRate.toFixed(2)}%`, 'warning');
             }
         }
         
@@ -351,6 +472,8 @@
             successCount = 0;
             failCount = 0;
             pendingCount = 0;
+            progressBar.style.width = '0%';
+            progressPercentSpan.textContent = '0%';
             updateCounters();
             addLog('统计数据已重置', 'info');
         }
@@ -377,12 +500,42 @@
         
         resetBtn.addEventListener('click', resetStatistics);
         
+        // 请求数量输入框事件
+        requestCountInput.addEventListener('input', () => {
+            let value = parseInt(requestCountInput.value);
+            
+            // 确保值在范围内
+            if (value < 500) value = 500;
+            if (value > 2000) value = 2000;
+            
+            requestCountInput.value = value;
+            requestCountValueSpan.textContent = value;
+            targetRequestsCount = value;
+            targetCountSpan.textContent = value;
+            
+            if (!isRunning) {
+                addLog(`请求数量已设置为: ${value}`, 'config');
+            }
+        });
+        
+        // 请求数量输入框失焦时验证
+        requestCountInput.addEventListener('blur', () => {
+            const value = parseInt(requestCountInput.value);
+            if (isNaN(value)) {
+                requestCountInput.value = 500;
+                requestCountValueSpan.textContent = '500';
+                targetRequestsCount = 500;
+                targetCountSpan.textContent = '500';
+            }
+        });
+        
+        // 并发数滑块事件
         concurrentSlider.addEventListener('input', () => {
             concurrentLimit = parseInt(concurrentSlider.value);
             concurrentValueSpan.textContent = concurrentLimit;
             
             if (!isRunning) {
-                addLog(`并发数已设置为: ${concurrentLimit}`, 'info');
+                addLog(`并发数已设置为: ${concurrentLimit}`, 'config');
             }
         });
         
@@ -395,8 +548,9 @@
         });
         
         // 初始状态
-        addLog('就绪，可修改URL后点击"开始发送请求"按钮开始测试', 'info');
+        addLog('就绪，可修改配置后点击"开始发送请求"按钮开始测试', 'info');
         addLog(`默认URL: ${TARGET_URL}`, 'url');
+        addLog(`配置: 请求数量=${targetRequestsCount}, 并发数=${concurrentLimit}`, 'config');
         updateCounters();
         
         // 页面关闭前提示
