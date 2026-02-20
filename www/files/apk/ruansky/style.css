@@ -1,169 +1,43 @@
-/* 基础重置与极简风格设置 */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    line-height: 1.6;
-    color: #333;
-    background-color: #f8f9fa;
-    padding: 20px;
-    min-height: 100vh;
-}
-
-.container {
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-/* 页眉样式 */
-.site-header {
-    text-align: center;
-    margin-bottom: 3rem;
-    padding-bottom: 1.5rem;
-    border-bottom: 1px solid #eaeaea;
-}
-
-.site-title {
-    font-size: 2.8rem;
-    font-weight: 300;
-    letter-spacing: -0.5px;
-    color: #2c3e50;
-    margin-bottom: 0.5rem;
-}
-
-.site-description {
-    font-size: 1.1rem;
-    color: #7f8c8d;
-    margin-bottom: 0.5rem;
-}
-
-.site-contact {
-    font-size: 0.9rem;
-    color: #95a5a6;
-}
-.site-contact a {
-    color: #3498db;
-    text-decoration: none;
-}
-
-/* 应用列表 */
-.app-list {
+/* 新增样式：按钮组和次要按钮 */
+.btn-group {
     display: flex;
-    flex-direction: column;
-    gap: 2rem;
-}
-
-/* 应用卡片 */
-.app-card {
-    background: #ffffff;
-    border-radius: 12px;
-    padding: 2rem;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.04);
-    border: 1px solid #f0f0f0;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.app-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
-}
-
-.app-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 0.75rem;
-}
-.app-name {
-    font-size: 1.6rem;
-    font-weight: 600;
-    color: #2c3e50;
-}
-.app-version {
-    font-size: 0.9rem;
-    color: #fff;
-    background-color: #3498db;
-    padding: 0.2rem 0.6rem;
-    border-radius: 20px;
-}
-
-.app-author {
-    font-size: 0.95rem;
-    color: #e74c3c; /* 醒目的作者标识色 */
-    margin-bottom: 1rem;
-    font-weight: 500;
-}
-
-.app-desc {
-    color: #555;
-    margin-bottom: 1.5rem;
-    font-size: 1rem;
-}
-
-/* 下载区域 */
-.app-download {
-    border-top: 1px dashed #eee;
-    padding-top: 1.5rem;
-}
-
-.download-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    background-color: #2ecc71;
-    color: white;
-    text-decoration: none;
-    padding: 0.8rem 1.8rem;
-    border-radius: 8px;
-    font-weight: 500;
-    transition: background-color 0.2s ease;
+    flex-wrap: wrap;
+    gap: 10px;
     margin-bottom: 1rem;
 }
-.download-btn:hover {
+
+.download-btn.secondary {
+    background-color: #6c757d; /* 灰色，用于区分主按钮 */
+}
+.download-btn.secondary:hover {
+    background-color: #5a6268;
+}
+
+/* 调整原有按钮样式，使其成为“主要”按钮 */
+.download-btn.primary {
+    background-color: #2ecc71; /* 保持原有的绿色 */
+}
+.download-btn.primary:hover {
     background-color: #27ae60;
 }
 
-.file-hash {
-    font-size: 0.85rem;
-    color: #777;
-    word-break: break-all; /* 确保长哈希值换行 */
-}
-.file-hash code {
-    font-family: 'Courier New', monospace;
-    background-color: #f7f7f7;
-    padding: 2px 6px;
-    border-radius: 4px;
-    color: #c0392b;
+/* 页眉中的提示信息 */
+.site-notice {
+    font-size: 0.9rem;
+    color: #e74c3c;
+    background-color: #fdf2f2;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border-left: 4px solid #e74c3c;
+    margin-top: 1rem;
 }
 
-/* 页脚 */
-.site-footer {
-    text-align: center;
-    margin-top: 3rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid #eaeaea;
-    font-size: 0.85rem;
-    color: #95a5a6;
-}
-
-/* 响应式调整 */
-@media (max-width: 600px) {
-    body {
-        padding: 15px;
-    }
-    .site-title {
-        font-size: 2.2rem;
-    }
-    .app-card {
-        padding: 1.5rem;
-    }
-    .app-header {
+/* 响应式调整：在小屏幕上让按钮垂直堆叠 */
+@media (max-width: 480px) {
+    .btn-group {
         flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
+    }
+    .download-btn {
+        text-align: center;
     }
 }
