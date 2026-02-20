@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AES加密解密 - Ruantools</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        h1 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .description {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .config-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+        }
+        
+        .config-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        label {
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        select, input {
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .batch-operations {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 6px;
+            flex-wrap: wrap;
+        }
+        
+        .input-section {
+            margin-bottom: 20px;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            font-size: 14px;
+            font-family: monospace;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .gen-btn-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #1e7e34;
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #545b62;
+        }
+        
+        .btn-warning {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        
+        .btn-warning:hover {
+            background-color: #e0a800;
+        }
+        
+        .btn-info {
+            background-color: #17a2b8;
+            color: white;
+        }
+        
+        .btn-info:hover {
+            background-color: #138496;
+        }
+        
+        .result-section {
+            margin-top: 20px;
+        }
+        
+        .result-label {
+            font-weight: 500;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        
+        .result-box {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 10px;
+            min-height: 100px;
+            font-family: monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            font-size: 14px;
+            color: #666;
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .stat-value {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .openssl-section {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            border-radius: 6px;
+        }
+        
+        .openssl-header {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+        
+        .openssl-title {
+            font-weight: 600;
+            color: #856404;
+            margin-left: 8px;
+        }
+        
+        .openssl-content {
+            display: block;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .checkbox-group input {
+            margin-right: 8px;
+        }
+        
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .toast.show {
+            opacity: 1;
+        }
+        
+        @media (max-width: 600px) {
+            .config-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .batch-operations {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AES加密解密 - Ruantools</h1>
+            <p class="description">专业AES加解密工具，支持OpenSSL兼容模式</p>
+        </div>
+        
+        <div class="config-section">
+            <div class="config-group">
+                <label for="keySize">密钥长度：</label>
+                <select id="keySize">
+                    <option value="128">AES-128</option>
+                    <option value="256">AES-256</option>
+                </select>
+            </div>
+            
+            <div class="config-group">
+                <label for="mode">加密模式：</label>
+                <select id="mode">
+                    <option value="CBC">CBC</option>
+                    <option value="ECB">ECB</option>
+                    <option value="CTR">CTR</option>
+                </select>
+            </div>
+            
+            <div class="config-group">
+                <label for="key">密码：</label>
+                <input type="text" id="key" placeholder="输入密码">
+                <div class="gen-btn-group">
+                    <button class="btn-info" onclick="generatePassword()">生成密码</button>
+                </div>
+            </div>
+            
+            <div class="config-group">
+                <label for="iv">IV向量：</label>
+                <input type="text" id="iv" placeholder="输入IV（可选）">
+                <div class="gen-btn-group">
+                    <button class="btn-info" onclick="generateIV()">生成IV</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="batch-operations">
+            <button class="btn-warning" onclick="generateAllParams()">🔄 一键生成所有参数</button>
+            <button class="btn-success" onclick="copyAllParams()">📋 一键复制所有参数</button>
+        </div>
+        
+        <div class="input-section">
+            <div class="input-group">
+                <label for="inputText">输入内容：</label>
+                <textarea id="inputText" placeholder="请输入要处理的内容..."></textarea>
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn-primary" onclick="encryptAES()">加密 →</button>
+                <button class="btn-success" onclick="decryptAES()">← 解密</button>
+                <button class="btn-secondary" onclick="clearAll()">清空所有</button>
+            </div>
+        </div>
+        
+        <div class="result-section">
+            <div class="result-label">处理结果：</div>
+            <div class="result-box" id="resultBox"></div>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <span>输入字符数</span>
+                    <span class="stat-value" id="inputCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>输出字符数</span>
+                    <span class="stat-value" id="outputCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>处理时间</span>
+                    <span class="stat-value" id="processTime">0ms</span>
+                </div>
+                <div class="stat-item">
+                    <span>当前模式</span>
+                    <span class="stat-value" id="currentMode">AES-128-CBC</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- OpenSSL配置移动到页面底部 -->
+        <div class="openssl-section">
+            <div class="openssl-header" onclick="toggleOpenssl()">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 12L12 8L8 4L4 8L8 12Z" fill="#856404"/>
+                </svg>
+                <span class="openssl-title">OpenSSL兼容配置</span>
+            </div>
+            <div class="openssl-content" id="opensslContent">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="usePbkdf2" checked disabled>
+                    <label for="usePbkdf2">使用PBKDF2密钥派生（OpenSSL兼容模式）</label>
+                </div>
+                
+                <div id="pbkdf2Config">
+                    <div class="config-group">
+                        <label for="iterations">迭代次数：</label>
+                        <input type="number" id="iterations" value="100" min="1" max="100000">
+                        <small style="color: #666; margin-top: 2px;">优化值：100（原默认10000）</small>
+                    </div>
+                    
+                    <div class="config-group">
+                        <label for="salt">盐值（Base64）：</label>
+                        <input type="text" id="salt" placeholder="自动生成8字节盐值">
+                        <div class="gen-btn-group">
+                            <button class="btn-info" onclick="generateSalt()">生成盐值</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示信息 -->
+    <div class="toast" id="toast"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script>
+        // 显示提示信息
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.backgroundColor = type === 'success' ? '#28a745' : '#dc3545';
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+        
+        function toggleOpenssl() {
+            const content = document.getElementById('opensslContent');
+            content.style.display = content.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        // 生成安全密码
+        function generatePassword() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+            let password = '';
+            for (let i = 0; i < 16; i++) {
+                password += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.getElementById('key').value = password;
+            showToast('密码已生成');
+        }
+        
+        // 生成IV
+        function generateIV() {
+            const iv = CryptoJS.lib.WordArray.random(16);
+            document.getElementById('iv').value = iv.toString(CryptoJS.enc.Hex);
+            showToast('IV已生成');
+        }
+        
+        // 生成盐值
+        function generateSalt() {
+            const salt = CryptoJS.lib.WordArray.random(8);
+            document.getElementById('salt').value = salt.toString(CryptoJS.enc.Base64);
+            showToast('盐值已生成');
+        }
+        
+        // 一键生成所有参数
+        function generateAllParams() {
+            generatePassword();
+            generateSalt();
+            generateIV();
+            showToast('所有安全参数已生成');
+        }
+        
+        // 一键复制所有参数
+        function copyAllParams() {
+            const password = document.getElementById('key').value;
+            const salt = document.getElementById('salt').value;
+            const iv = document.getElementById('iv').value;
+            
+            const params = {
+                password: password,
+                salt: salt,
+                iv: iv,
+                timestamp: new Date().toISOString()
+            };
+            
+            const jsonString = JSON.stringify(params, null, 2);
+            
+            navigator.clipboard.writeText(jsonString).then(() => {
+                showToast('所有参数已复制到剪贴板');
+            }).catch(() => {
+                const textArea = document.createElement('textarea');
+                textArea.value = jsonString;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showToast('所有参数已复制到剪贴板（兼容模式）');
+            });
+        }
+        
+        // OpenSSL兼容加密
+        function encryptAES() {
+            const startTime = performance.now();
+            const inputText = document.getElementById('inputText').value;
+            const password = document.getElementById('key').value;
+            const iv = document.getElementById('iv').value;
+            const keySize = parseInt(document.getElementById('keySize').value);
+            const mode = document.getElementById('mode').value;
+            const iterations = parseInt(document.getElementById('iterations').value);
+            let salt = document.getElementById('salt').value;
+            const resultBox = document.getElementById('resultBox');
+            
+            if (!inputText.trim()) {
+                resultBox.textContent = '请输入要加密的内容';
+                return;
+            }
+            
+            if (!password.trim()) {
+                resultBox.textContent = '请输入密码';
+                return;
+            }
+            
+            try {
+                let keyWordArray;
+                let saltWordArray;
+                let finalSalt;
+                
+                // OpenSSL兼容的PBKDF2密钥派生
+                if (!salt.trim()) {
+                    finalSalt = CryptoJS.lib.WordArray.random(8);
+                    document.getElementById('salt').value = finalSalt.toString(CryptoJS.enc.Base64);
+                } else {
+                    finalSalt = CryptoJS.enc.Base64.parse(salt);
+                }
+                
+                // PBKDF2密钥派生（优化迭代次数）
+                keyWordArray = CryptoJS.PBKDF2(password, finalSalt, {
+                    keySize: keySize / 32,
+                    iterations: iterations,
+                    hasher: CryptoJS.algo.SHA256
+                });
+                
+                // 处理IV
+                let ivWordArray;
+                if (mode === 'CBC' || mode === 'CTR') {
+                    if (iv) {
+                        ivWordArray = CryptoJS.enc.Utf8.parse(iv.padEnd(16, '\0'));
+                    } else {
+                        ivWordArray = CryptoJS.lib.WordArray.random(16);
+                        document.getElementById('iv').value = ivWordArray.toString(CryptoJS.enc.Hex);
+                    }
+                }
+                
+                // 执行加密
+                let encrypted;
+                if (mode === 'CBC') {
+                    encrypted = CryptoJS.AES.encrypt(inputText, keyWordArray, {
+                        iv: ivWordArray,
+                        mode: CryptoJS.mode.CBC,
+                        padding: CryptoJS.pad.Pkcs7
+                    });
+                } else if (mode === 'ECB') {
+                    encrypted = CryptoJS.AES.encrypt(inputText, keyWordArray, {
+                        mode: CryptoJS.mode.ECB,
+                        padding: CryptoJS.pad.Pkcs7
+                    });
+                } else if (mode === 'CTR') {
+                    encrypted = CryptoJS.AES.encrypt(inputText, keyWordArray, {
+                        iv: ivWordArray,
+                        mode: CryptoJS.mode.CTR,
+                        padding: CryptoJS.pad.NoPadding
+                    });
+                }
+                
+                // OpenSSL兼容输出格式
+                let result = '';
+                result += `Salted__${finalSalt.toString(CryptoJS.enc.Hex).toUpperCase()}\n`;
+                result += encrypted.toString();
+                
+                resultBox.textContent = result;
+                updateStats(inputText.length, result.length, startTime);
+                
+            } catch (error) {
+                resultBox.textContent = '加密失败: ' + error.message;
+            }
+        }
+        
+        // OpenSSL兼容解密
+        function decryptAES() {
+            const startTime = performance.now();
+            const inputText = document.getElementById('inputText').value;
+            const password = document.getElementById('key').value;
+            const iv = document.getElementById('iv').value;
+            const keySize = parseInt(document.getElementById('keySize').value);
+            const mode = document.getElementById('mode').value;
+            const iterations = parseInt(document.getElementById('iterations').value);
+            let salt = document.getElementById('salt').value;
+            const resultBox = document.getElementById('resultBox');
+            
+            if (!inputText.trim()) {
+                resultBox.textContent = '请输入要解密的内容';
+                return;
+            }
+            
+            if (!password.trim()) {
+                resultBox.textContent = '请输入密码';
+                return;
+            }
+            
+            try {
+                let ciphertext = inputText;
+                let extractedSalt = null;
+                
+                if (inputText.startsWith('Salted__')) {
+                    const lines = inputText.split('\n');
+                    if (lines.length >= 1) {
+                        const saltLine = lines[0];
+                        const saltHex = saltLine.substring(8);
+                        extractedSalt = CryptoJS.enc.Hex.parse(saltHex);
+                        ciphertext = lines.slice(1).join('\n');
+                    }
+                } else if (salt) {
+                    extractedSalt = CryptoJS.enc.Base64.parse(salt);
+                }
+                
+                if (!extractedSalt) {
+                    resultBox.textContent = '需要提供盐值进行PBKDF2解密';
+                    return;
+                }
+                
+                const keyWordArray = CryptoJS.PBKDF2(password, extractedSalt, {
+                    keySize: keySize / 32,
+                    iterations: iterations,
+                    hasher: CryptoJS.algo.SHA256
+                });
+                
+                let ivWordArray;
+                if (mode === 'CBC' || mode === 'CTR') {
+                    if (iv) {
+                        ivWordArray = CryptoJS.enc.Utf8.parse(iv.padEnd(16, '\0'));
+                    } else {
+                        resultBox.textContent = 'CBC/CTR模式需要提供IV';
+                        return;
+                    }
+                }
+                
+                let decrypted;
+                if (mode === 'CBC') {
+                    decrypted = CryptoJS.AES.decrypt(ciphertext, keyWordArray, {
+                        iv: ivWordArray,
+                        mode: CryptoJS.mode.CBC,
+                        padding: CryptoJS.pad.Pkcs7
+                    });
+                } else if (mode === 'ECB') {
+                    decrypted = CryptoJS.AES.decrypt(ciphertext, keyWordArray, {
+                        mode: CryptoJS.mode.ECB,
+                        padding: CryptoJS.pad.Pkcs7
+                    });
+                } else if (mode === 'CTR') {
+                    decrypted = CryptoJS.AES.decrypt(ciphertext, keyWordArray, {
+                        iv: ivWordArray,
+                        mode: CryptoJS.mode.CTR,
+                        padding: CryptoJS.pad.NoPadding
+                    });
+                }
+                
+                const decryptedText = decrypted.toString(CryptoJS.enc.Utf8);
+                if (!decryptedText) {
+                    resultBox.textContent = '解密失败：密码、盐值或IV不正确';
+                } else {
+                    resultBox.textContent = decryptedText;
+                }
+                
+                updateStats(inputText.length, decryptedText.length, startTime);
+                
+            } catch (error) {
+                resultBox.textContent = '解密失败: ' + error.message;
+            }
+        }
+        
+        function clearAll() {
+            document.getElementById('inputText').value = '';
+            document.getElementById('resultBox').textContent = '';
+            document.getElementById('key').value = '';
+            document.getElementById('salt').value = '';
+            document.getElementById('iv').value = '';
+            updateStats(0, 0, 0);
+            showToast('已清空所有内容');
+        }
+        
+        function updateStats(inputLength, outputLength, startTime) {
+            const endTime = performance.now();
+            const processTime = Math.round(endTime - startTime);
+            
+            document.getElementById('inputCount').textContent = inputLength;
+            document.getElementById('outputCount').textContent = outputLength;
+            document.getElementById('processTime').textContent = processTime + 'ms';
+        }
+        
+        // 初始化
+        document.getElementById('inputText').addEventListener('input', function() {
+            document.getElementById('inputCount').textContent = this.value.length;
+        });
+    </script>
+</body>
+</html>
