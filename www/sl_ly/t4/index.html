@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-        <!-- SPDX-FileCopyrightText: 2026 联电远连 <work_rrvv@hotmi@hotmail.com> -->
+    <!-- SPDX-FileCopyrightText: 2026 联电远连 <work_rrvv@hotmi@hotmail.com> -->
     <!-- SPDX-License-Identifier: Apache-2.0 -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -267,6 +267,47 @@
             opacity: 1;
         }
         
+        .paste-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        
+        .paste-modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .paste-modal textarea {
+            width: 100%;
+            min-height: 150px;
+            margin: 15px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        .paste-modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        
         @media (max-width: 600px) {
             .config-section {
                 grid-template-columns: 1fr;
@@ -274,6 +315,11 @@
             
             .batch-operations {
                 flex-direction: column;
+            }
+            
+            .paste-modal-content {
+                width: 95%;
+                padding: 15px;
             }
         }
     </style>
@@ -323,6 +369,7 @@
         <div class="batch-operations">
             <button class="btn-warning" onclick="generateAllParams()">🔄 一键生成所有参数</button>
             <button class="btn-success" onclick="copyAllParams()">📋 一键复制所有参数</button>
+            <button class="btn-info" onclick="pasteAllParams()">📋 一键粘贴填充参数</button>
         </div>
         
         <div class="input-section">
@@ -362,7 +409,7 @@
             </div>
         </div>
         
-        <!-- OpenSSL配置移动到页面底部 -->
+        <!-- OpenSSL配置 -->
         <div class="openssl-section">
             <div class="openssl-header" onclick="toggleOpenssl()">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -395,6 +442,19 @@
         </div>
     </div>
 
+    <!-- 粘贴参数模态框 -->
+    <div class="paste-modal" id="pasteModal">
+        <div class="paste-modal-content">
+            <h3>粘贴参数配置</h3>
+            <p>请粘贴之前复制的JSON格式参数：</p>
+            <textarea id="pasteTextarea" placeholder='{"password":"your_password","salt":"your_salt","iv":"your_iv"}'></textarea>
+            <div class="paste-modal-buttons">
+                <button class="btn-secondary" onclick="closePasteModal()">取消</button>
+                <button class="btn-primary" onclick="applyPastedParams()">应用参数</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 提示信息 -->
     <div class="toast" id="toast"></div>
 
@@ -410,6 +470,90 @@
             setTimeout(() => {
                 toast.classList.remove('show');
             }, 2000);
+        }
+        
+        // 粘贴参数模态框相关函数
+        function openPasteModal() {
+            document.getElementById('pasteModal').style.display = 'flex';
+            document.getElementById('pasteTextarea').value = '';
+            document.getElementById('pasteTextarea').focus();
+        }
+        
+        function closePasteModal() {
+            document.getElementById('pasteModal').style.display = 'none';
+        }
+        
+        // 应用粘贴的参数
+        function applyPastedParams() {
+            const pasteText = document.getElementById('pasteTextarea').value.trim();
+            
+            if (!pasteText) {
+                showToast('请粘贴参数JSON数据', 'error');
+                return;
+            }
+            
+            try {
+                const params = JSON.parse(pasteText);
+                
+                // 填充各个字段
+                if (params.password) {
+                    document.getElementById('key').value = params.password;
+                }
+                
+                if (params.salt) {
+                    document.getElementById('salt').value = params.salt;
+                }
+                
+                if (params.iv) {
+                    document.getElementById('iv').value = params.iv;
+                }
+                
+                // 可选：如果JSON中包含其他配置，也可以在这里处理
+                if (params.iterations) {
+                    document.getElementById('iterations').value = params.iterations;
+                }
+                
+                if (params.keySize) {
+                    document.getElementById('keySize').value = params.keySize;
+                }
+                
+                if (params.mode) {
+                    document.getElementById('mode').value = params.mode;
+                }
+                
+                showToast('参数已成功应用');
+                closePasteModal();
+                
+            } catch (error) {
+                showToast('JSON解析失败，请检查格式是否正确', 'error');
+                console.error('JSON解析错误:', error);
+            }
+        }
+        
+        // 一键粘贴填充参数
+        function pasteAllParams() {
+            // 尝试从剪贴板读取
+            if (navigator.clipboard && navigator.clipboard.readText) {
+                navigator.clipboard.readText()
+                    .then(text => {
+                        if (text.trim()) {
+                            // 如果有内容，直接填充到模态框并应用
+                            document.getElementById('pasteTextarea').value = text;
+                            applyPastedParams();
+                        } else {
+                            // 如果剪贴板为空，打开模态框让用户手动粘贴
+                            openPasteModal();
+                        }
+                    })
+                    .catch(err => {
+                        console.warn('剪贴板读取失败:', err);
+                        // 如果读取失败，打开模态框让用户手动粘贴
+                        openPasteModal();
+                    });
+            } else {
+                // 浏览器不支持剪贴板API，打开模态框让用户手动粘贴
+                openPasteModal();
+            }
         }
         
         function toggleOpenssl() {
@@ -455,12 +599,19 @@
             const password = document.getElementById('key').value;
             const salt = document.getElementById('salt').value;
             const iv = document.getElementById('iv').value;
+            const keySize = document.getElementById('keySize').value;
+            const mode = document.getElementById('mode').value;
+            const iterations = document.getElementById('iterations').value;
             
             const params = {
                 password: password,
                 salt: salt,
                 iv: iv,
-                timestamp: new Date().toISOString()
+                keySize: keySize,
+                mode: mode,
+                iterations: iterations,
+                timestamp: new Date().toISOString(),
+                note: "由Ruantools AES工具生成的参数"
             };
             
             const jsonString = JSON.stringify(params, null, 2);
@@ -552,6 +703,9 @@
                     });
                 }
                 
+                // 更新当前模式显示
+                document.getElementById('currentMode').textContent = `AES-${keySize}-${mode}`;
+                
                 // OpenSSL兼容输出格式
                 let result = '';
                 result += `Salted__${finalSalt.toString(CryptoJS.enc.Hex).toUpperCase()}\n`;
@@ -624,6 +778,9 @@
                     }
                 }
                 
+                // 更新当前模式显示
+                document.getElementById('currentMode').textContent = `AES-${keySize}-${mode}`;
+                
                 let decrypted;
                 if (mode === 'CBC') {
                     decrypted = CryptoJS.AES.decrypt(ciphertext, keyWordArray, {
@@ -681,6 +838,33 @@
         document.getElementById('inputText').addEventListener('input', function() {
             document.getElementById('inputCount').textContent = this.value.length;
         });
+        
+        // 点击模态框外部关闭
+        document.getElementById('pasteModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closePasteModal();
+            }
+        });
+        
+        // 按ESC键关闭模态框
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && document.getElementById('pasteModal').style.display === 'flex') {
+                closePasteModal();
+            }
+        });
+        
+        // 更新当前模式显示
+        document.getElementById('keySize').addEventListener('change', updateCurrentMode);
+        document.getElementById('mode').addEventListener('change', updateCurrentMode);
+        
+        function updateCurrentMode() {
+            const keySize = document.getElementById('keySize').value;
+            const mode = document.getElementById('mode').value;
+            document.getElementById('currentMode').textContent = `AES-${keySize}-${mode}`;
+        }
+        
+        // 初始化显示
+        updateCurrentMode();
     </script>
 </body>
 </html>
