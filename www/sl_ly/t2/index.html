@@ -5,510 +5,407 @@
     <!-- SPDX-License-Identifier: Apache-2.0 -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GET请求测试 - Ruantools</title>
+    <title>批量请求测试</title>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            margin: 20px;
-            background: #f5f5f5;
-        }
-        
-        .container {
+            font-family: Arial, sans-serif;
             max-width: 800px;
             margin: 0 auto;
-            background: white;
             padding: 20px;
+        }
+        .container {
+            background-color: #f5f5f5;
             border-radius: 8px;
+            padding: 20px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        
-        .input-group {
-            margin-bottom: 15px;
+        h1 {
+            color: #333;
+            text-align: center;
         }
-        
+        .url-input {
+            margin: 20px 0;
+        }
+        .url-input label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .url-input input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .url-input input:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+        }
+        .status {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 20px 0;
+            height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        button.stop {
+            background-color: #f44336;
+        }
+        button.stop:hover {
+            background-color: #d32f2f;
+        }
+        .counter {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+        }
+        .counter div {
+            font-weight: bold;
+        }
+        #successCount {
+            color: #4CAF50;
+        }
+        #failCount {
+            color: #f44336;
+        }
+        .concurrent-control {
+            margin: 15px 0;
+        }
         label {
             display: block;
             margin-bottom: 5px;
-            font-weight: 500;
-        }
-        
-        input, textarea {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-        
-        textarea {
-            font-family: monospace;
-            min-height: 100px;
-        }
-        
-        .btn-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        
-        button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            flex: 1;
-        }
-        
-        .btn-start {
-            background: #007bff;
-            color: white;
-        }
-        
-        .btn-stop {
-            background: #dc3545;
-            color: white;
-        }
-        
-        .btn-clear {
-            background: #6c757d;
-            color: white;
-        }
-        
-        .btn-header {
-            background: #ffc107;
-            color: #212529;
-        }
-        
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin: 20px 0;
-            text-align: center;
-        }
-        
-        .stat-item {
-            padding: 10px;
-            background: #f8f9fa;
-            border-radius: 4px;
-        }
-        
-        .stat-number {
-            font-size: 18px;
             font-weight: bold;
         }
-        
-        .progress {
+        input[type="range"] {
             width: 100%;
-            height: 6px;
-            background: #e9ecef;
-            border-radius: 3px;
-            margin: 15px 0;
-            overflow: hidden;
         }
-        
-        .progress-bar {
-            height: 100%;
-            background: #007bff;
-            width: 0%;
-            transition: width 0.3s;
+        .concurrent-value {
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+            color: #2196F3;
         }
-        
-        .result-item {
-            padding: 8px 12px;
-            margin-bottom: 5px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-family: monospace;
+        .reset-btn {
+            background-color: #ff9800;
         }
-        
-        .success {
-            background: #d4edda;
-            color: #155724;
-            border-left: 3px solid #28a745;
-        }
-        
-        .error {
-            background: #f8d7da;
-            color: #721c24;
-            border-left: 3px solid #dc3545;
-        }
-        
-        .request-headers {
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 4px;
-            margin-top: 5px;
-            border: 1px solid #dee2e6;
-        }
-        
-        .header-list {
-            font-size: 12px;
-            color: #6c757d;
-        }
-        
-        .header-item {
-            margin: 3px 0;
-        }
-        
-        .collapsible {
-            margin-top: 10px;
-        }
-        
-        .collapsible-header {
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            font-weight: 500;
-            color: #007bff;
-        }
-        
-        .collapsible-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-        }
-        
-        .collapsible-content.expanded {
-            max-height: 300px;
-        }
-        
-        .chevron {
-            margin-right: 5px;
-            transition: transform 0.3s;
-        }
-        
-        .expanded .chevron {
-            transform: rotate(90deg);
-        }
-        
-        .preset-buttons {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-        
-        .preset-btn {
-            padding: 5px 10px;
-            background: #e9ecef;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
+        .reset-btn:hover {
+            background-color: #e68a00;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>GET请求测试工具</h2>
-        <p>需要抓包到点赞的链接，然后复制进来</p>
+        <h1>批量请求测试工具</h1>
+        <p>向指定URL发送GET请求，使用okhttp/3.6 User-Agent</p>
         
-        <div class="input-group">
-            <label>URL:</label>
-            <input type="url" id="url" value="https://httpbin.org/get" placeholder="输入目标URL">
+        <div class="url-input">
+            <label for="targetUrl">目标URL:</label>
+            <input type="text" id="targetUrl" 
+                   value="http://rtkapi.ruansky.net/members/postsLike?channel=rtk&version=8730&api_level=31&phone_model=%5Cu0048%5Cu004f%5Cu004e%5Cu004f%5Cu0052%5Cu005f%5Cu004a%5Cu004c%5Cu0048%5Cu002d%5Cu0041%5Cu004e%5Cu0030%5Cu0030&os_info=V1__MagicOS__MagicUI_6.1.0&uid=6105391&token=1862923837a28ac7ff5c7870733bf4f5&mid=10&pid=1264447&key=4d4270435a62590ee0354b98c6c78c81">
         </div>
         
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-            <div class="input-group">
-                <label>请求次数:</label>
-                <input type="number" id="requests" value="10" min="1" max="1000">
-            </div>
-            
-            <div class="input-group">
-                <label>并发量:</label>
-                <input type="number" id="concurrency" value="3" min="1" max="50">
-            </div>
+        <div class="concurrent-control">
+            <label for="concurrent">并发数: <span id="concurrentValue">5</span></label>
+            <input type="range" id="concurrent" min="1" max="20" value="5">
         </div>
         
-        <div class="input-group">
-            <div class="collapsible">
-                <div class="collapsible-header" onclick="toggleHeaders()">
-                    <span class="chevron">▶</span>
-                    自定义请求头 (可选)
-                </div>
-                <div class="collapsible-content" id="headersContent">
-                    <div class="preset-buttons">
-                        <button class="preset-btn" onclick="setOkHttpHeaders()">okhttp/3.6.0</button>
-                        <button class="preset-btn" onclick="setChromeHeaders()">Chrome</button>
-                        <button class="preset-btn" onclick="setFirefoxHeaders()">Firefox</button>
-                    </div>
-                    <textarea id="headers" placeholder="每行一个请求头，格式：键: 值
-例如：
-Host: rtkapi.ruansky.net
-Connection: Keep-Alive
-Accept-Encoding: gzip
-User-Agent: okhttp/3.6.0
-Authorization: Bearer token123"></textarea>
-                </div>
-            </div>
+        <div class="controls">
+            <button id="startBtn">开始发送请求</button>
+            <button id="stopBtn" class="stop" disabled>停止发送</button>
+            <button id="clearBtn">清空日志</button>
+            <button id="resetBtn" class="reset-btn">重置统计</button>
         </div>
         
-        <div class="progress">
-            <div class="progress-bar" id="progressBar"></div>
-        </div>
+        <div class="status" id="status"></div>
         
-        <div class="btn-group">
-            <button class="btn-start" onclick="startRequests()">开始</button>
-            <button class="btn-stop" onclick="stopRequests()" disabled id="stopBtn">停止</button>
-            <button class="btn-header" onclick="showHeadersInfo()">查看请求头</button>
-            <button class="btn-clear" onclick="clearResults()">清空</button>
+        <div class="counter">
+            <div>总请求数: <span id="totalCount">0</span>/<span id="targetCount">500</span></div>
+            <div>成功: <span id="successCount">0</span></div>
+            <div>失败: <span id="failCount">0</span></div>
+            <div>进行中: <span id="pendingCount">0</span></div>
         </div>
-        
-        <div class="stats">
-            <div class="stat-item">
-                <div class="stat-number" id="total">0</div>
-                <div>总数</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number" id="success">0</div>
-                <div>成功</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number" id="error">0</div>
-                <div>失败</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number" id="avgTime">0ms</div>
-                <div>平均耗时</div>
-            </div>
-        </div>
-        
-        <div id="results" style="max-height: 400px; overflow-y: auto;"></div>
     </div>
 
     <script>
-        let requestQueue = [];
-        let activeRequests = 0;
-        let completedRequests = 0;
+        // 默认URL - 用户可以修改
+        let TARGET_URL = 'http://rtkapi.ruansky.net/members/postsLike?channel=rtk&version=8730&api_level=31&phone_model=%5Cu0048%5Cu004f%5Cu004e%5Cu004f%5Cu0052%5Cu005f%5Cu004a%5Cu004c%5Cu0048%5Cu002d%5Cu0041%5Cu004e%5Cu0030%5Cu0030&os_info=V1__MagicOS__MagicUI_6.1.0&uid=6105391&token=1862923837a28ac7ff5c7870733bf4f5&mid=10&pid=1264447&key=4d4270435a62590ee0354b98c6c78c81';
+        
+        // 控制变量
+        let isRunning = false;
+        let stopRequested = false;
         let totalRequests = 0;
         let successCount = 0;
-        let errorCount = 0;
-        let totalTime = 0;
-        let isRunning = false;
-        let controller = null;
-        let currentHeaders = {};
-
-        function toggleHeaders() {
-            const content = document.getElementById('headersContent');
-            content.classList.toggle('expanded');
+        let failCount = 0;
+        let pendingCount = 0;
+        let concurrentLimit = 5;
+        let targetRequestsCount = 500;
+        
+        // DOM元素
+        const statusDiv = document.getElementById('status');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const targetUrlInput = document.getElementById('targetUrl');
+        const totalCountSpan = document.getElementById('totalCount');
+        const targetCountSpan = document.getElementById('targetCount');
+        const successCountSpan = document.getElementById('successCount');
+        const failCountSpan = document.getElementById('failCount');
+        const pendingCountSpan = document.getElementById('pendingCount');
+        const concurrentSlider = document.getElementById('concurrent');
+        const concurrentValueSpan = document.getElementById('concurrentValue');
+        
+        // 更新计数器显示
+        function updateCounters() {
+            totalCountSpan.textContent = totalRequests;
+            successCountSpan.textContent = successCount;
+            failCountSpan.textContent = failCount;
+            pendingCountSpan.textContent = pendingCount;
         }
-
-        function parseHeaders(headersText) {
-            const headers = {};
-            if (!headersText.trim()) return headers;
+        
+        // 添加状态日志
+        function addLog(message, type = 'info') {
+            const now = new Date();
+            const timestamp = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+            const logEntry = document.createElement('div');
             
-            const lines = headersText.split('\n');
-            for (let line of lines) {
-                line = line.trim();
-                if (!line || line.startsWith('#')) continue;
-                
-                const colonIndex = line.indexOf(':');
-                if (colonIndex > 0) {
-                    const key = line.substring(0, colonIndex).trim();
-                    const value = line.substring(colonIndex + 1).trim();
-                    headers[key] = value;
-                }
-            }
-            return headers;
-        }
-
-        function setOkHttpHeaders() {
-            document.getElementById('headers').value = 
-`Host: rtkapi.ruansky.net
-Connection: Keep-Alive
-Accept-Encoding: gzip
-User-Agent: okhttp/3.6.0`;
-        }
-
-        function setChromeHeaders() {
-            document.getElementById('headers').value = 
-`User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36
-Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
-Accept-Language: zh-CN,zh;q=0.9,en;q=0.8
-Accept-Encoding: gzip, deflate, br
-Connection: keep-alive`;
-        }
-
-        function setFirefoxHeaders() {
-            document.getElementById('headers').value = 
-`User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0
-Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
-Accept-Language: zh-CN,zh;q=0.9,en;q=0.8
-Accept-Encoding: gzip, deflate, br
-Connection: keep-alive`;
-        }
-
-        function showHeadersInfo() {
-            const headersText = document.getElementById('headers').value;
-            const headers = parseHeaders(headersText);
-            const url = document.getElementById('url').value;
+            logEntry.innerHTML = `<span style="color: #666">[${timestamp}]</span> ${message}`;
             
-            let info = `当前配置：
-URL: ${url}
-请求头数量: ${Object.keys(headers).length}`;
-            
-            if (Object.keys(headers).length > 0) {
-                info += '\n\n请求头列表：';
-                for (const [key, value] of Object.entries(headers)) {
-                    info += `\n${key}: ${value}`;
-                }
+            if (type === 'success') {
+                logEntry.style.color = '#4CAF50';
+            } else if (type === 'error') {
+                logEntry.style.color = '#f44336';
+            } else if (type === 'warning') {
+                logEntry.style.color = '#ff9800';
+            } else if (type === 'url') {
+                logEntry.style.color = '#2196F3';
             }
             
-            alert(info);
+            statusDiv.appendChild(logEntry);
+            statusDiv.scrollTop = statusDiv.scrollHeight;
         }
-
-        function updateStats() {
-            document.getElementById('total').textContent = totalRequests;
-            document.getElementById('success').textContent = successCount;
-            document.getElementById('error').textContent = errorCount;
-            
-            const avgTime = successCount > 0 ? Math.round(totalTime / successCount) : 0;
-            document.getElementById('avgTime').textContent = avgTime + 'ms';
-            
-            const progress = (completedRequests / totalRequests) * 100;
-            document.getElementById('progressBar').style.width = progress + '%';
-        }
-
-        function addResult(status, code, url, time, headers = {}) {
-            const results = document.getElementById('results');
-            const item = document.createElement('div');
-            item.className = `result-item ${status}`;
-            
-            let content = `${code} | ${time}ms | ${url}`;
-            
-            if (Object.keys(headers).length > 0) {
-                const headersDiv = document.createElement('div');
-                headersDiv.className = 'request-headers';
-                headersDiv.innerHTML = '<div class="header-list">使用的请求头:</div>';
-                
-                for (const [key, value] of Object.entries(headers)) {
-                    const headerItem = document.createElement('div');
-                    headerItem.className = 'header-item';
-                    headerItem.textContent = `${key}: ${value}`;
-                    headersDiv.appendChild(headerItem);
-                }
-                
-                item.innerHTML = `<div>${content}</div>`;
-                item.appendChild(headersDiv);
-            } else {
-                item.textContent = content;
-            }
-            
-            results.appendChild(item);
-            results.scrollTop = results.scrollHeight;
-        }
-
-        async function sendRequest(url, requestHeaders) {
-            const start = Date.now();
+        
+        // 验证URL格式
+        function isValidUrl(url) {
             try {
-                if (controller) {
-                    const response = await fetch(url, {
-                        signal: controller.signal,
-                        headers: requestHeaders
-                    });
-                    const time = Date.now() - start;
-                    
-                    if (response.ok) {
-                        successCount++;
-                        totalTime += time;
-                        addResult('success', response.status, url, time, requestHeaders);
-                    } else {
-                        errorCount++;
-                        addResult('error', response.status, url, time, requestHeaders);
-                    }
-                }
-            } catch (err) {
-                const time = Date.now() - start;
-                if (err.name !== 'AbortError') {
-                    errorCount++;
-                    addResult('error', 'ERROR', url, time, requestHeaders);
-                }
+                new URL(url);
+                return true;
+            } catch (e) {
+                return false;
             }
-            
-            completedRequests++;
-            activeRequests--;
-            updateStats();
-            processQueue();
         }
-
-        function processQueue() {
-            if (requestQueue.length === 0 && activeRequests === 0) {
-                stopRequests();
+        
+        // 发送单个请求
+        function sendRequest(requestId, url) {
+            if (stopRequested) return Promise.resolve();
+            
+            pendingCount++;
+            updateCounters();
+            
+            return fetch(url, {
+                method: 'GET',
+                headers: {
+                    'User-Agent': 'okhttp/3.6'
+                },
+                // 添加no-cache避免缓存
+                cache: 'no-cache'
+            })
+            .then(response => {
+                pendingCount--;
+                totalRequests++;
+                
+                if (response.ok) {
+                    successCount++;
+                    addLog(`请求 #${requestId}: 成功 (状态: ${response.status})`, 'success');
+                } else {
+                    failCount++;
+                    addLog(`请求 #${requestId}: 服务器错误 (状态: ${response.status})`, 'error');
+                }
+                
+                updateCounters();
+                return response;
+            })
+            .catch(error => {
+                pendingCount--;
+                totalRequests++;
+                failCount++;
+                
+                addLog(`请求 #${requestId}: 失败 - ${error.message}`, 'error');
+                updateCounters();
+            });
+        }
+        
+        // 批量发送请求
+        async function sendBatchRequests() {
+            // 从输入框获取URL
+            const userUrl = targetUrlInput.value.trim();
+            
+            // 验证URL
+            if (!userUrl) {
+                addLog('错误：请输入目标URL', 'error');
                 return;
             }
             
-            const concurrency = parseInt(document.getElementById('concurrency').value);
-            while (activeRequests < concurrency && requestQueue.length > 0) {
-                activeRequests++;
-                const { url, headers } = requestQueue.shift();
-                sendRequest(url, headers);
-            }
-        }
-
-        function startRequests() {
-            if (isRunning) return;
-            
-            const url = document.getElementById('url').value;
-            const requests = parseInt(document.getElementById('requests').value);
-            if (!url) {
-                alert('请输入URL');
+            if (!isValidUrl(userUrl)) {
+                addLog('错误：URL格式无效，请输入完整的URL（如：http://example.com/api）', 'error');
                 return;
             }
             
-            // 解析请求头
-            const headersText = document.getElementById('headers').value;
-            currentHeaders = parseHeaders(headersText);
+            TARGET_URL = userUrl;
             
-            // 重置
-            requestQueue = [];
-            activeRequests = 0;
-            completedRequests = 0;
-            totalRequests = requests;
-            successCount = 0;
-            errorCount = 0;
-            totalTime = 0;
             isRunning = true;
-            controller = new AbortController();
+            stopRequested = false;
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+            targetUrlInput.disabled = true;
             
-            document.getElementById('results').innerHTML = '';
-            updateStats();
-            document.getElementById('stopBtn').disabled = false;
+            addLog(`开始发送请求到: ${TARGET_URL}`, 'url');
+            addLog(`并发数: ${concurrentLimit}, 目标请求数: ${targetRequestsCount}`, 'warning');
             
-            // 创建队列
-            for (let i = 0; i < requests; i++) {
-                const fullUrl = url + (url.includes('?') ? '&' : '?') + 'req=' + (i + 1);
-                requestQueue.push({ url: fullUrl, headers: currentHeaders });
+            let nextRequestId = 1;
+            
+            // 使用Promise池控制并发
+            const pool = [];
+            
+            while (nextRequestId <= targetRequestsCount && !stopRequested) {
+                // 如果池子未满且还有请求要发送
+                if (pool.length < concurrentLimit && nextRequestId <= targetRequestsCount) {
+                    const requestId = nextRequestId;
+                    nextRequestId++;
+                    
+                    const requestPromise = sendRequest(requestId, TARGET_URL).finally(() => {
+                        // 请求完成后从池中移除自己
+                        const index = pool.indexOf(requestPromise);
+                        if (index > -1) {
+                            pool.splice(index, 1);
+                        }
+                    });
+                    
+                    pool.push(requestPromise);
+                } else if (pool.length >= concurrentLimit) {
+                    // 池子已满，等待一个请求完成
+                    await Promise.race(pool);
+                }
+                
+                // 避免阻塞主线程
+                await new Promise(resolve => setTimeout(resolve, 0));
             }
             
-            processQueue();
-        }
-
-        function stopRequests() {
-            if (controller) {
-                controller.abort();
-                controller = null;
-            }
+            // 等待所有剩余请求完成
+            await Promise.all(pool);
+            
             isRunning = false;
-            document.getElementById('stopBtn').disabled = true;
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            targetUrlInput.disabled = false;
+            
+            if (stopRequested) {
+                addLog('请求发送已停止', 'warning');
+            } else {
+                addLog(`所有${targetRequestsCount}个请求发送完成`, 'warning');
+                addLog(`统计结果: 成功 ${successCount}, 失败 ${failCount}, 成功率 ${((successCount/targetRequestsCount)*100).toFixed(2)}%`, 'warning');
+            }
         }
-
-        function clearResults() {
+        
+        // 重置统计
+        function resetStatistics() {
             if (isRunning) {
-                alert('请先停止测试');
+                addLog('请先停止请求再重置统计', 'warning');
                 return;
             }
-            document.getElementById('results').innerHTML = '';
+            
+            totalRequests = 0;
             successCount = 0;
-            errorCount = 0;
-            totalTime = 0;
-            updateStats();
-            document.getElementById('progressBar').style.width = '0%';
+            failCount = 0;
+            pendingCount = 0;
+            updateCounters();
+            addLog('统计数据已重置', 'info');
         }
-
-        // 初始化
-        document.addEventListener('DOMContentLoaded', function() {
-            setOkHttpHeaders(); // 默认设置为图片中的请求头
+        
+        // 事件监听
+        startBtn.addEventListener('click', () => {
+            if (!isRunning) {
+                sendBatchRequests();
+            }
+        });
+        
+        stopBtn.addEventListener('click', () => {
+            if (isRunning) {
+                stopRequested = true;
+                stopBtn.disabled = true;
+                addLog('正在停止发送请求...', 'warning');
+            }
+        });
+        
+        clearBtn.addEventListener('click', () => {
+            statusDiv.innerHTML = '';
+            addLog('日志已清空', 'info');
+        });
+        
+        resetBtn.addEventListener('click', resetStatistics);
+        
+        concurrentSlider.addEventListener('input', () => {
+            concurrentLimit = parseInt(concurrentSlider.value);
+            concurrentValueSpan.textContent = concurrentLimit;
+            
+            if (!isRunning) {
+                addLog(`并发数已设置为: ${concurrentLimit}`, 'info');
+            }
+        });
+        
+        // URL输入框变化时记录
+        targetUrlInput.addEventListener('change', () => {
+            const userUrl = targetUrlInput.value.trim();
+            if (userUrl && isValidUrl(userUrl) && !isRunning) {
+                addLog(`目标URL已更新: ${userUrl}`, 'url');
+            }
+        });
+        
+        // 初始状态
+        addLog('就绪，可修改URL后点击"开始发送请求"按钮开始测试', 'info');
+        addLog(`默认URL: ${TARGET_URL}`, 'url');
+        updateCounters();
+        
+        // 页面关闭前提示
+        window.addEventListener('beforeunload', (e) => {
+            if (isRunning) {
+                e.preventDefault();
+                e.returnValue = '请求仍在进行中，确定要离开吗？';
+                return '请求仍在进行中，确定要离开吗？';
+            }
         });
     </script>
 </body>
