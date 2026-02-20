@@ -30,12 +30,17 @@
             font-weight: 500;
         }
         
-        input {
+        input, textarea {
             width: 100%;
             padding: 8px 12px;
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 14px;
+        }
+        
+        textarea {
+            font-family: monospace;
+            min-height: 100px;
         }
         
         .btn-group {
@@ -66,6 +71,11 @@
         .btn-clear {
             background: #6c757d;
             color: white;
+        }
+        
+        .btn-header {
+            background: #ffc107;
+            color: #212529;
         }
         
         .stats {
@@ -122,11 +132,75 @@
             color: #721c24;
             border-left: 3px solid #dc3545;
         }
+        
+        .request-headers {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 5px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .header-list {
+            font-size: 12px;
+            color: #6c757d;
+        }
+        
+        .header-item {
+            margin: 3px 0;
+        }
+        
+        .collapsible {
+            margin-top: 10px;
+        }
+        
+        .collapsible-header {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-weight: 500;
+            color: #007bff;
+        }
+        
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        
+        .collapsible-content.expanded {
+            max-height: 300px;
+        }
+        
+        .chevron {
+            margin-right: 5px;
+            transition: transform 0.3s;
+        }
+        
+        .expanded .chevron {
+            transform: rotate(90deg);
+        }
+        
+        .preset-buttons {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .preset-btn {
+            padding: 5px 10px;
+            background: #e9ecef;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>GET请求测试工具</h2>
+        <p>需要抓包到点赞的链接，然后复制进来</p>
         
         <div class="input-group">
             <label>URL:</label>
@@ -145,6 +219,29 @@
             </div>
         </div>
         
+        <div class="input-group">
+            <div class="collapsible">
+                <div class="collapsible-header" onclick="toggleHeaders()">
+                    <span class="chevron">▶</span>
+                    自定义请求头 (可选)
+                </div>
+                <div class="collapsible-content" id="headersContent">
+                    <div class="preset-buttons">
+                        <button class="preset-btn" onclick="setOkHttpHeaders()">okhttp/3.6.0</button>
+                        <button class="preset-btn" onclick="setChromeHeaders()">Chrome</button>
+                        <button class="preset-btn" onclick="setFirefoxHeaders()">Firefox</button>
+                    </div>
+                    <textarea id="headers" placeholder="每行一个请求头，格式：键: 值
+例如：
+Host: rtkapi.ruansky.net
+Connection: Keep-Alive
+Accept-Encoding: gzip
+User-Agent: okhttp/3.6.0
+Authorization: Bearer token123"></textarea>
+                </div>
+            </div>
+        </div>
+        
         <div class="progress">
             <div class="progress-bar" id="progressBar"></div>
         </div>
@@ -152,6 +249,7 @@
         <div class="btn-group">
             <button class="btn-start" onclick="startRequests()">开始</button>
             <button class="btn-stop" onclick="stopRequests()" disabled id="stopBtn">停止</button>
+            <button class="btn-header" onclick="showHeadersInfo()">查看请求头</button>
             <button class="btn-clear" onclick="clearResults()">清空</button>
         </div>
         
@@ -187,13 +285,82 @@
         let totalTime = 0;
         let isRunning = false;
         let controller = null;
+        let currentHeaders = {};
+
+        function toggleHeaders() {
+            const content = document.getElementById('headersContent');
+            content.classList.toggle('expanded');
+        }
+
+        function parseHeaders(headersText) {
+            const headers = {};
+            if (!headersText.trim()) return headers;
+            
+            const lines = headersText.split('\n');
+            for (let line of lines) {
+                line = line.trim();
+                if (!line || line.startsWith('#')) continue;
+                
+                const colonIndex = line.indexOf(':');
+                if (colonIndex > 0) {
+                    const key = line.substring(0, colonIndex).trim();
+                    const value = line.substring(colonIndex + 1).trim();
+                    headers[key] = value;
+                }
+            }
+            return headers;
+        }
+
+        function setOkHttpHeaders() {
+            document.getElementById('headers').value = 
+`Host: rtkapi.ruansky.net
+Connection: Keep-Alive
+Accept-Encoding: gzip
+User-Agent: okhttp/3.6.0`;
+        }
+
+        function setChromeHeaders() {
+            document.getElementById('headers').value = 
+`User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+Accept-Language: zh-CN,zh;q=0.9,en;q=0.8
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive`;
+        }
+
+        function setFirefoxHeaders() {
+            document.getElementById('headers').value = 
+`User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+Accept-Language: zh-CN,zh;q=0.9,en;q=0.8
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive`;
+        }
+
+        function showHeadersInfo() {
+            const headersText = document.getElementById('headers').value;
+            const headers = parseHeaders(headersText);
+            const url = document.getElementById('url').value;
+            
+            let info = `当前配置：
+URL: ${url}
+请求头数量: ${Object.keys(headers).length}`;
+            
+            if (Object.keys(headers).length > 0) {
+                info += '\n\n请求头列表：';
+                for (const [key, value] of Object.entries(headers)) {
+                    info += `\n${key}: ${value}`;
+                }
+            }
+            
+            alert(info);
+        }
 
         function updateStats() {
             document.getElementById('total').textContent = totalRequests;
             document.getElementById('success').textContent = successCount;
             document.getElementById('error').textContent = errorCount;
             
-            // 修复平均耗时计算：只基于成功请求计算
             const avgTime = successCount > 0 ? Math.round(totalTime / successCount) : 0;
             document.getElementById('avgTime').textContent = avgTime + 'ms';
             
@@ -201,36 +368,59 @@
             document.getElementById('progressBar').style.width = progress + '%';
         }
 
-        function addResult(status, code, url, time) {
+        function addResult(status, code, url, time, headers = {}) {
             const results = document.getElementById('results');
             const item = document.createElement('div');
             item.className = `result-item ${status}`;
-            item.textContent = `${code} | ${time}ms | ${url}`;
+            
+            let content = `${code} | ${time}ms | ${url}`;
+            
+            if (Object.keys(headers).length > 0) {
+                const headersDiv = document.createElement('div');
+                headersDiv.className = 'request-headers';
+                headersDiv.innerHTML = '<div class="header-list">使用的请求头:</div>';
+                
+                for (const [key, value] of Object.entries(headers)) {
+                    const headerItem = document.createElement('div');
+                    headerItem.className = 'header-item';
+                    headerItem.textContent = `${key}: ${value}`;
+                    headersDiv.appendChild(headerItem);
+                }
+                
+                item.innerHTML = `<div>${content}</div>`;
+                item.appendChild(headersDiv);
+            } else {
+                item.textContent = content;
+            }
+            
             results.appendChild(item);
             results.scrollTop = results.scrollHeight;
         }
 
-        async function sendRequest(url) {
+        async function sendRequest(url, requestHeaders) {
             const start = Date.now();
             try {
                 if (controller) {
-                    const response = await fetch(url, { signal: controller.signal });
+                    const response = await fetch(url, {
+                        signal: controller.signal,
+                        headers: requestHeaders
+                    });
                     const time = Date.now() - start;
                     
                     if (response.ok) {
                         successCount++;
-                        totalTime += time;  // 只累加成功请求的时间
-                        addResult('success', response.status, url, time);
+                        totalTime += time;
+                        addResult('success', response.status, url, time, requestHeaders);
                     } else {
                         errorCount++;
-                        addResult('error', response.status, url, time);
+                        addResult('error', response.status, url, time, requestHeaders);
                     }
                 }
             } catch (err) {
                 const time = Date.now() - start;
                 if (err.name !== 'AbortError') {
                     errorCount++;
-                    addResult('error', 'ERROR', url, time);
+                    addResult('error', 'ERROR', url, time, requestHeaders);
                 }
             }
             
@@ -249,8 +439,8 @@
             const concurrency = parseInt(document.getElementById('concurrency').value);
             while (activeRequests < concurrency && requestQueue.length > 0) {
                 activeRequests++;
-                const url = requestQueue.shift();
-                sendRequest(url);
+                const { url, headers } = requestQueue.shift();
+                sendRequest(url, headers);
             }
         }
 
@@ -263,6 +453,10 @@
                 alert('请输入URL');
                 return;
             }
+            
+            // 解析请求头
+            const headersText = document.getElementById('headers').value;
+            currentHeaders = parseHeaders(headersText);
             
             // 重置
             requestQueue = [];
@@ -282,7 +476,7 @@
             // 创建队列
             for (let i = 0; i < requests; i++) {
                 const fullUrl = url + (url.includes('?') ? '&' : '?') + 'req=' + (i + 1);
-                requestQueue.push(fullUrl);
+                requestQueue.push({ url: fullUrl, headers: currentHeaders });
             }
             
             processQueue();
@@ -309,6 +503,11 @@
             updateStats();
             document.getElementById('progressBar').style.width = '0%';
         }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            setOkHttpHeaders(); // 默认设置为图片中的请求头
+        });
     </script>
 </body>
 </html>
